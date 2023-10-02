@@ -14,7 +14,7 @@ import (
 
 // DownloadChunk 下载分片的函数
 func DownloadChunk(url string, chunkIndex, chunkSize int64, wg *sync.WaitGroup, progressCh chan<- int) {
-	//传入URL、分片的索引、大小、WaitGroup、进度通道
+	//传入URL、分片的索引、分片的大小、WaitGroup、发送分片下载进度的管道
 
 	defer wg.Done()
 
