@@ -1,12 +1,12 @@
 package main
 
 import (
+	"Go-Get/download"
+	"Go-Get/getname"
+	"Go-Get/merge"
 	"fmt"
 	"net/http"
 	"path/filepath"
-	"siky-idm/download"
-	"siky-idm/getname"
-	"siky-idm/merge"
 	"strconv"
 	"sync"
 
@@ -18,7 +18,7 @@ func main() {
 	r := gin.Default()
 
 	r.GET("/download", func(c *gin.Context) {
-		url := "https://cn-gdfs-ct-01-11.bilivideo.com/upgcxcode/47/51/1220655147/1220655147-1-16.mp4?e=ig8euxZM2rNcNbRVhwdVhwdlhWdVhwdVhoNvNC8BqJIzNbfq9rVEuxTEnE8L5F6VnEsSTx0vkX8fqJeYTj_lta53NCM=&uipk=5&nbs=1&deadline=1696318756&gen=playurlv2&os=bcache&oi=17621919&trid=00006b144ea1d7114a5eb0bd4e9c7b85de0dh&mid=0&platform=html5&upsig=d02b6da498b011fb53adcd4b139e1186&uparams=e,uipk,nbs,deadline,gen,os,oi,trid,mid,platform&cdnid=60911&bvc=vod&nettype=0&f=h_0_0&bw=27530&logo=80000000"
+		url := ""
 		//通过HEAD方法获取文件信息
 		resp, err := http.Head(url)
 		if err != nil {
@@ -45,7 +45,7 @@ func main() {
 
 		// 从head获取文件大小，传入需要解析的字符串、进制（10进制）、结果类型（int64）
 		contentLength, _ := strconv.ParseInt(resp.Header.Get("Content-Length"), 10, 64)
-		chunkSize := contentLength / 5 // 分成5个分片，你可以根据需要更改分片数
+		chunkSize := contentLength / 5 // 分片大小 分成5个分片，你可以根据需要更改分片数
 
 		var wg sync.WaitGroup
 		progressCh := make(chan int, 5) // 同时下载的分片数
@@ -73,6 +73,23 @@ func main() {
 		merge.MergeChunks(5, "/Users/siky/Desktop/"+fileName)
 
 		c.JSON(http.StatusOK, gin.H{"message": "Download completed"})
+	})
+
+	r.GET("/torrent", func(c *gin.Context) {
+		// 种子文件路径
+		torrentFilePath := "/Users/siky/go/src/Go-Get/test.torrent"
+
+		// 传入种子文件路径和下载目录
+		download.DownloadTorrentFile(torrentFilePath, "/Users/siky/go/src/Go-Get")
+		c.JSON(http.StatusOK, gin.H{"message": "Download completed"})
+		// 删除 .torrent.db 文件
+		// dbFilePath := filepath.Join(downloadDir, ".torrent.db")
+		// err := os.Remove(dbFilePath)
+		// if err != nil {
+		// 	log.Println("删除 .torrent.db 文件时出错:", err)
+		// } else {
+		// 	log.Println(".torrent.db 文件已成功删除")
+		// }
 	})
 
 	r.Run(":9000")

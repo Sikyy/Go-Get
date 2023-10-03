@@ -3,31 +3,22 @@ package getname
 import (
 	"errors"
 	"net/url"
+	"regexp"
 	"strings"
 )
 
-// func CleanFileName(fileName string, maxLength int) string {
-// 	// 删除不合法的字符
-// 	invalidChars := []rune{'\\', '/', ':', '*', '?', '"', '<', '>', '|'}
-// 	fileName = strings.Map(func(r rune) rune {
-// 		if unicode.IsControl(r) || unicode.IsSpace(r) {
-// 			return '_'
-// 		}
-// 		for _, c := range invalidChars {
-// 			if r == c {
-// 				return '_'
-// 			}
-// 		}
-// 		return r
-// 	}, fileName)
-
-// 	// 截取文件名，确保不超过最大长度
-// 	if maxLength > 0 && len(fileName) > maxLength {
-// 		fileName = fileName[:maxLength]
-// 	}
-
-// 	return fileName
-// }
+// 正则表达式匹配动画名称，//一些很抽象的匹配不了
+func ExtractAnimeName(filename string) string {
+	// 使用正则表达式匹配动画名称
+	re := regexp.MustCompile(`\[.*?]\s*([\p{L}\p{N}\s&-]+)\s*-`)
+	matches := re.FindStringSubmatch(filename)
+	if len(matches) >= 2 {
+		animeName := strings.TrimSpace(matches[1])
+		return animeName
+	}
+	// 如果未匹配到，返回空字符串或默认值
+	return ""
+}
 
 // 从内容配置中提取文件名
 func ExtractFileNameFromContentDisposition(contentDisposition string) (string, error) {

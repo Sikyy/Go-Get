@@ -53,13 +53,14 @@ func DownloadChunk(url string, chunkIndex, chunkSize int64, wg *sync.WaitGroup, 
 		fmt.Sprintf("Chunk %d", chunkIndex),
 	)
 
-	// 复制响应体到分片文件，并同时更新进度条
+	// 将分块下载的数据从 HTTP 响应体复制到分块文件，并通过进度条实时显示下载进度。https://github.com/schollz/progressbar配套的
+	//从resp.Body复制到file，同时也复制到bar，这样就可以实时显示下载进度了
 	_, err = io.Copy(io.MultiWriter(file, bar), resp.Body)
 	if err != nil {
 		fmt.Println("Error copying chunk:", err)
 		return
 	}
 
-	// 发送分片下载进度
+	// 下载完成时，发送分片下载进度给管道
 	progressCh <- int(resp.ContentLength)
 }
