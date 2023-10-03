@@ -39,8 +39,8 @@ func DownloadChunk(url string, chunkIndex, chunkSize int64, wg *sync.WaitGroup, 
 	defer resp.Body.Close()
 
 	// 创建分片文件
-	fileName := fmt.Sprintf("chunk_%d.tmp", chunkIndex)
-	file, err := os.Create(fileName)
+	fileName := fmt.Sprintf("chunk_%d.tmp", chunkIndex) //分片文件名，格式为chunk_0.tmp、chunk_1.tmp等
+	file, err := os.Create(fileName)                    //创建文件，返回文件指针
 	if err != nil {
 		fmt.Println("Error creating chunk file:", err)
 		return

@@ -14,10 +14,12 @@ import (
 )
 
 func main() {
+	// 创建一个默认的路由引擎
 	r := gin.Default()
 
 	r.GET("/download", func(c *gin.Context) {
-		url := "https://cn-gddg-ct-01-12.bilivideo.com/upgcxcode/48/28/1282432848/1282432848-1-16.mp4?e=ig8euxZM2rNcNbRVhwdVhwdlhWdVhwdVhoNvNC8BqJIzNbfq9rVEuxTEnE8L5F6VnEsSTx0vkX8fqJeYTj_lta53NCM=&uipk=5&nbs=1&deadline=1696264842&gen=playurlv2&os=bcache&oi=17627301&trid=00008c2b90aa305d4b34b771bdb3db3b7b48h&mid=0&platform=html5&upsig=9d53d11b621f908fdc61ae6fd0339e2d&uparams=e,uipk,nbs,deadline,gen,os,oi,trid,mid,platform&cdnid=61312&bvc=vod&nettype=0&f=h_0_0&bw=51461&logo=80000000"
+		url := "https://cn-gdfs-ct-01-11.bilivideo.com/upgcxcode/47/51/1220655147/1220655147-1-16.mp4?e=ig8euxZM2rNcNbRVhwdVhwdlhWdVhwdVhoNvNC8BqJIzNbfq9rVEuxTEnE8L5F6VnEsSTx0vkX8fqJeYTj_lta53NCM=&uipk=5&nbs=1&deadline=1696318756&gen=playurlv2&os=bcache&oi=17621919&trid=00006b144ea1d7114a5eb0bd4e9c7b85de0dh&mid=0&platform=html5&upsig=d02b6da498b011fb53adcd4b139e1186&uparams=e,uipk,nbs,deadline,gen,os,oi,trid,mid,platform&cdnid=60911&bvc=vod&nettype=0&f=h_0_0&bw=27530&logo=80000000"
+		//通过HEAD方法获取文件信息
 		resp, err := http.Head(url)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get file info"})
@@ -25,12 +27,10 @@ func main() {
 		}
 		defer resp.Body.Close()
 
-		// 获取Content-Disposition头部字段
+		// 获取Content-Disposition头部字段，里面可能包含文件名
 		contentDisposition := resp.Header.Get("Content-Disposition")
-		var fileName string
-
+		fileName := ""
 		if contentDisposition != "" {
-			var err error
 			fileName, err = getname.ExtractFileNameFromContentDisposition(contentDisposition)
 			if err != nil {
 				// 处理提取文件名失败的情况
@@ -43,6 +43,7 @@ func main() {
 			fileName = filepath.Base(url)
 		}
 
+		// 从head获取文件大小，传入需要解析的字符串、进制（10进制）、结果类型（int64）
 		contentLength, _ := strconv.ParseInt(resp.Header.Get("Content-Length"), 10, 64)
 		chunkSize := contentLength / 5 // 分成5个分片，你可以根据需要更改分片数
 
@@ -75,8 +76,4 @@ func main() {
 	})
 
 	r.Run(":9000")
-}
-
-func extractFileNameFromContentDisposition(contentDisposition string) {
-	panic("unimplemented")
 }
