@@ -18,7 +18,7 @@ func main() {
 	r := gin.Default()
 
 	r.GET("/download", func(c *gin.Context) {
-		url := ""
+		url := "https://cn-gdfs-ct-01-11.bilivideo.com/upgcxcode/47/51/1220655147/1220655147-1-16.mp4?e=ig8euxZM2rNcNbRVhwdVhwdlhWdVhwdVhoNvNC8BqJIzNbfq9rVEuxTEnE8L5F6VnEsSTx0vkX8fqJeYTj_lta53NCM=&uipk=5&nbs=1&deadline=1696318756&gen=playurlv2&os=bcache&oi=17621919&trid=00006b144ea1d7114a5eb0bd4e9c7b85de0dh&mid=0&platform=html5&upsig=d02b6da498b011fb53adcd4b139e1186&uparams=e,uipk,nbs,deadline,gen,os,oi,trid,mid,platform&cdnid=60911&bvc=vod&nettype=0&f=h_0_0&bw=27530&logo=80000000"
 		//通过HEAD方法获取文件信息
 		resp, err := http.Head(url)
 		if err != nil {
