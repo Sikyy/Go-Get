@@ -7,40 +7,51 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/anacrolix/torrent"
 )
 
-// DownloadTorrentFile 添加一个种子文件并启动下载任务
-func DownloadTorrentFile(torrentFilePath, downloadDir string) {
-	// 创建一个新的Torrent客户端
+// DownloadMagnetFile 添加一个磁力链接并启动下载任务
+func DownloadMagnetFile(magnetURL, downloadDir string) {
+	// 创建一个新的 Torrent 客户端
 	client, err := torrent.NewClient(nil)
 	if err != nil {
 		log.Fatal(err)
 	}
+	fmt.Println("初始化客户端成功")
 	defer client.Close()
 
-	// 解析上传的种子文件，返回一个TorrentFile的指针
-	torrentFile, err := client.AddTorrentFromFile(torrentFilePath)
+	// 解析磁力链接，返回一个 TorrentFile 的指针
+	torrentFile, err := client.AddMagnet(magnetURL)
 	if err != nil {
+		fmt.Println("解析磁力链接时出错:", err)
 		log.Fatal(err)
 	}
+	//q：为什么会返回空指针
+	//a：因为这个磁力链接是无效的，或者说这个磁力链接没有对应的种子文件
 
-	// 访问解析后的种子信息
-	fmt.Println("Torrent Name:", torrentFile.Info().Name)
-	fmt.Println("Number of Files:", len(torrentFile.Info().Files))
-	fmt.Println("Total Size:", torrentFile.Info().TotalLength())
-
-	// 获取 Tracker 列表
-	trackers := torrentFile.Metainfo().AnnounceList
-	for _, tracker := range trackers {
-		fmt.Println("Tracker URL:", tracker[0])
+	// 等待解析磁力链接，当元数据下载完成后，该通道会被关闭，此时可以访问种子信息
+	// 如果超时，就会执行 time.After() 中的代码
+	select {
+	case <-torrentFile.GotInfo():
+		fmt.Println("解析磁力链接成功")
+		// 此处添加访问种子信息的代码
+	case <-time.After(15 * time.Second):
+		fmt.Println("解析超时，建议检查一下网络情况，或是磁力链接是否失效")
+		return // 或者执行其他超时后的操作
 	}
+
+	info := torrentFile.Info()
+
+	log.Println("Torrent Name:", info.Name)
+	log.Println("Number of Files:", len(info.Files))
+	log.Println("Total Size:", info.TotalLength())
 
 	files := torrentFile.Files()
 	for _, file := range files {
-		fmt.Println("File Name:", file.Path())
-		fmt.Println("File Size:", file.Length())
+		log.Println("File Name:", file.Path())
+		log.Println("File Size:", file.Length())
 	}
 
 	// 获取种子文件的原始文件名
@@ -70,26 +81,15 @@ func DownloadTorrentFile(torrentFilePath, downloadDir string) {
 	if err := os.Chdir(savePath); err != nil {
 		log.Fatal(err)
 	}
-	// 下载所有文件或者指定文件
-	// 选择要下载的文件（示例中选择第一个文件）
-	// selectedFile := files[0]
+
 	torrentFile.AllowDataDownload() // 允许下载数据
 	fmt.Println("允许下载数据")
 
-	torrentFile.DownloadAll() //开始下载
-	fmt.Println("开始下载")
-
-	// 开始下载
+	// 下载所有文件
 	torrentFile.DownloadAll()
+	fmt.Println("开始下载")
 
 	// 等待下载完成
 	client.WaitAll()
 	log.Println("Torrent downloaded:", torrentFile.Info().Name)
 }
-
-// torrent.DownloadAll() // 下载所有文件
-// torrent.Pause()	// 暂停
-// torrent.Resume()	// 恢复
-// torrent.Cancel()	// 取消
-// torrent.Wait() 		// 等待下载完成
-// client.WaitAll()	// 等待所有下载完成
