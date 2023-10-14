@@ -1,0 +1,98 @@
+
+body, h1, h2, ul {
+  margin: 0;
+  padding: 0;
+}
+
+/* Set background color and text color */
+body {
+  background-color: #f0f0f0;
+  color: #333;
+  font-family: Arial, sans-serif;
+}
+
+/* Style the container */
+.container {
+  width: 80%;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Style the header */
+header {
+  text-align: center;
+  background-color: #0074d9;
+  color: #fff;
+  padding: 10px 0;
+}
+
+h1 {
+  font-size: 24px;
+}
+
+/* Style the main sections */
+.add-magnet, .magnet-list {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+/* Style the input and button in the "添加下载任务" section */
+.input-container {
+  display: flex;
+}
+
+input[type="text"] {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-right: 10px;
+}
+
+button#add-magnet-btn {
+  background-color: #0074d9;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button#add-magnet-btn:hover {
+  background-color: #0056a4;
+}
+
+/* Style the text below the input area */
+.drag-drop-text {
+  font-size: 14px;
+  color: #777;
+  margin-top: 10px;
+}
+
+/* Style the "下载任务列表" */
+ul {
+  list-style: none;
+}
+
+ul li {
+  font-size: 16px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+}
+
+ul li:hover {
+  background-color: #f0f0f0;
+}

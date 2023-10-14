@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Torrent Downloader</title>
+    <link rel="stylesheet" href="/static/index.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Everything Downloader</h1>
+        </header>
+        <main>
+            <section class="add-magnet">
+                <h2>添加下载任务</h2>
+                <div class="input-container">
+                    <input type="text" id="magnet-link" placeholder="输入下载链接">
+                    <button id="add-magnet-btn">下载</button>
+                </div>
+                <p class="drag-drop-text">或拖拽.torrent文件到此区域</p>
+            </section>
+            <section class="magnet-list">
+                <h2>下载任务列表</h2>
+                <ul id="magnet-list">
+                    <!-- Torrent items will be added here dynamically -->
+                </ul>
+            </section>
+            <section class="magnet-details">
+                <h2>解析结果</h2>
+                <div id="magnet-details-container">
+                    <!-- 解析结果将在此处显示 -->
+                </div>
+            </section>
+        </main>
+        <script src="/static/downloadmagnet.js"></script>
+        <!-- <script src="/static/details.js"></script>
+        <script src="/static/task-list.js"></script> -->
+    </div>
+</body>
+</html>
