@@ -43,7 +43,7 @@ func DownloadMagnetFile(magnetURL, downloadDir string, outputCh chan<- string) {
 	case <-torrentFile.GotInfo():
 		way.SendOutput(outputCh, "解析磁力链接成功")
 		// 此处添加访问种子信息的代码
-	case <-time.After(15 * time.Second):
+	case <-time.After(20 * time.Second):
 		way.SendOutput(outputCh, "解析超时，建议检查一下网络情况，或是磁力链接是否失效")
 		return // 或者执行其他超时后的操作
 	}

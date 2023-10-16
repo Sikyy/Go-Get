@@ -21,41 +21,48 @@ func main() {
 	// 创建一个默认的路由引擎
 	r := gin.Default()
 
+	// 在全局范围内定义一个 map 用于跟踪已连接的 WebSocket 客户端
+	var connectedClients = make(map[*websocket.Conn]bool)
+
 	// 设置websocket
-	// 初始化 WebSocket 处理器
-	upgrader := websocket.Upgrader{
-		ReadBufferSize:  1024,
-		WriteBufferSize: 1024,
+	var upgrader = websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
 			return true
 		},
 	}
 
-	// var conn *websocket.Conn
-
 	r.GET("/ws", func(c *gin.Context) {
-		// 升级 HTTP 连接为 WebSocket 连接
-		conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+		// 使用WebSocket处理程序
+		ws, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 		if err != nil {
-			log.Print("升级为 WebSocket 失败:", err)
+			fmt.Println(err)
 			return
 		}
+		defer ws.Close()
 
-		// 处理 WebSocket 连接
+		// 添加连接到已连接客户端 Map
+		connectedClients[ws] = true
+
+		// 处理 WebSocket 消息
 		for {
-			messageType, p, err := conn.ReadMessage()
+			_, _, err := ws.ReadMessage()
 			if err != nil {
-				log.Println("读取消息失败:", err)
-				break
-			}
-			if messageType == websocket.TextMessage {
-				// 处理文本消息
-				message := string(p)
-				// 在这里处理收到的消息
-				fmt.Println(message)
+				// 处理断开连接
+				log.Println("连接失败:", err)
+				delete(connectedClients, ws)
+				return
 			}
 		}
-		// 你可以在这里编写处理 WebSocket 连接的逻辑
+
+		// 模拟实时输出内容
+		// for i := 0; i < 5; i++ {
+		// 	message := "This is content number " + fmt.Sprint(i+1)
+		// 	//睡眠1秒
+		// 	time.Sleep(time.Second)
+		// 	if err := ws.WriteMessage(websocket.TextMessage, []byte(message)); err != nil {
+		// 		return
+		// 	}
+		// }
 	})
 
 	r.LoadHTMLGlob("templates/*.html")
@@ -148,7 +155,7 @@ func main() {
 		magnetURL := c.Query("magnetURL")
 		//url := "magnet:?
 		// 传入磁力链接和下载目录
-		outputCh := make(chan string, 100)
+		outputCh := make(chan string, 10000)
 		download.DownloadMagnetFile(magnetURL, "/Users/siky/go/src/Go-Get", outputCh)
 		c.JSON(http.StatusOK, gin.H{"message": "Download completed"})
 		// 删除 .torrent.db 文件
@@ -159,17 +166,17 @@ func main() {
 		} else {
 			way.SendOutput(outputCh, ".torrent.db 文件已成功删除")
 		}
-		// 启动Goroutine将输出信息发送到WebSocket客户端
-		// go func() {
-		// 	for {
-		// 		output := <-outputCh
-		// 		err := conn.WriteMessage(websocket.TextMessage, []byte(output))
-		// 		if err != nil {
-		// 			way.SendOutput(outputCh, "发送消息失败:%v", err)
-		// 			break
-		// 		}
-		// 	}
-		// }()
+
+		// 处理输出消息并发送到 WebSocket 客户端
+		for message := range outputCh {
+			for client := range connectedClients {
+				if err := client.WriteMessage(websocket.TextMessage, []byte(message)); err != nil {
+					fmt.Println("Failed to send data to client:", err)
+				}
+			}
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "Download completed"})
 	})
 
 	r.Run(":9000")
