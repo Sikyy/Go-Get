@@ -58,7 +58,7 @@ input[type="text"] {
   margin-right: 10px;
 }
 
-button#add-magnet-btn {
+button#add-magnet-btn, button#add-torrent-btn {
   background-color: #0074d9;
   color: #fff;
   border: none;
@@ -68,7 +68,7 @@ button#add-magnet-btn {
   transition: background-color 0.3s;
 }
 
-button#add-magnet-btn:hover {
+button#add-magnet-btn:hover, button#add-torrent-btn:hover {
   background-color: #0056a4;
 }
 

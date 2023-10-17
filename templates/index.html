@@ -16,7 +16,10 @@
                 <h2>添加下载任务</h2>
                 <div class="input-container">
                     <input type="text" id="magnet-link" placeholder="输入下载链接">
-                    <button id="add-magnet-btn">下载</button>
+                    <button id="add-magnet-btn">下载Magnet</button>
+                    <script src="/static/downloadmagnet.js"></script>
+                    <button id="add-torrent-btn">下载Torrent</button>
+                    <script src="/static/downloadTorrent.js"></script>
                 </div>
                 <p class="drag-drop-text">或拖拽.torrent文件到此区域</p>
             </section>
@@ -33,12 +36,9 @@
                 </div>
                 <div id="output"></div>
                 <!-- 引入外部的JavaScript文件 -->
-                <script src="/static/test.js"></script>
+                <script src="/static/output.js"></script>
             </section>
         </main>
-        <script src="/static/downloadmagnet.js"></script>
-        <!-- <script src="/static/details.js"></script>
-        <script src="/static/task-list.js"></script> -->
     </div>
 </body>
 </html>

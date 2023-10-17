@@ -136,18 +136,31 @@ func main() {
 	r.GET("/torrent", func(c *gin.Context) {
 		// 种子文件路径
 		torrentFilePath := "/Users/siky/go/src/Go-Get/test.torrent"
-
+		outputCh := make(chan string, 10000)
 		// 传入种子文件路径和下载目录
-		download.DownloadTorrentFile(torrentFilePath, "/Users/siky/go/src/Go-Get")
-		c.JSON(http.StatusOK, gin.H{"message": "Download completed"})
-		//删除 .torrent.db 文件
-		dbFilePath := filepath.Join("/Users/siky/go/src/Go-Get", ".torrent.db")
-		err := os.Remove(dbFilePath)
-		if err != nil {
-			log.Println("删除 .torrent.db 文件时出错:", err)
-		} else {
-			log.Println(".torrent.db 文件已成功删除")
-		}
+		go func() {
+			defer close(outputCh)
+			download.DownloadTorrentFile(torrentFilePath, "/Users/siky/go/src/Go-Get", outputCh)
+			c.JSON(http.StatusOK, gin.H{"message": "Download completed"})
+			//删除 .torrent.db 文件
+			dbFilePath := filepath.Join("/Users/siky/go/src/Go-Get", ".torrent.db")
+			err := os.Remove(dbFilePath)
+			if err != nil {
+				way.SendOutput(outputCh, "删除 .torrent.db 文件时出错:%v", err)
+			} else {
+				way.SendOutput(outputCh, ".torrent.db 文件已成功删除")
+			}
+		}()
+		// 处理输出消息并发送到 WebSocket 客户端
+		go func() {
+			for message := range outputCh {
+				for client := range connectedClients {
+					if err := client.WriteMessage(websocket.TextMessage, []byte(message)); err != nil {
+						fmt.Println("Failed to send data to client:", err)
+					}
+				}
+			}
+		}()
 	})
 
 	r.GET("/magnet", func(c *gin.Context) {
@@ -156,27 +169,33 @@ func main() {
 		//url := "magnet:?
 		// 传入磁力链接和下载目录
 		outputCh := make(chan string, 10000)
-		download.DownloadMagnetFile(magnetURL, "/Users/siky/go/src/Go-Get", outputCh)
-		c.JSON(http.StatusOK, gin.H{"message": "Download completed"})
-		// 删除 .torrent.db 文件
-		dbFilePath := filepath.Join("/Users/siky/go/src/Go-Get", ".torrent.db")
-		err := os.Remove(dbFilePath)
-		if err != nil {
-			way.SendOutput(outputCh, "删除 .torrent.db 文件时出错:%v", err)
-		} else {
-			way.SendOutput(outputCh, ".torrent.db 文件已成功删除")
-		}
-
-		// 处理输出消息并发送到 WebSocket 客户端
-		for message := range outputCh {
-			for client := range connectedClients {
-				if err := client.WriteMessage(websocket.TextMessage, []byte(message)); err != nil {
-					fmt.Println("Failed to send data to client:", err)
+		go func() {
+			defer close(outputCh)
+			download.DownloadMagnetFile(magnetURL, "/Users/siky/go/src/Go-Get", outputCh)
+			c.JSON(http.StatusOK, gin.H{"message": "Download completed"})
+			// 删除 .torrent.db 文件
+			dbFilePath := filepath.Join("/Users/siky/go/src/Go-Get", ".torrent.db")
+			err := os.Remove(dbFilePath)
+			if err != nil {
+				way.SendOutput(outputCh, "删除 .torrent.db 文件时出错:%v", err)
+			} else {
+				way.SendOutput(outputCh, ".torrent.db 文件已成功删除")
+			}
+		}()
+		//处理输出消息并发送到 WebSocket 客户端
+		go func() {
+			for message := range outputCh {
+				for client := range connectedClients {
+					if err := client.WriteMessage(websocket.TextMessage, []byte(message)); err != nil {
+						fmt.Println("Failed to send data to client:", err)
+					}
 				}
 			}
-		}
+		}()
+	})
 
-		c.JSON(http.StatusOK, gin.H{"message": "Download completed"})
+	r.GET("/test", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "test.html", nil)
 	})
 
 	r.Run(":9000")

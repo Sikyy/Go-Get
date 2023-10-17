@@ -34,6 +34,7 @@ func DownloadMagnetFile(magnetURL, downloadDir string, outputCh chan<- string) {
 		way.SendOutput(outputCh, "解析磁力链接失败:%v", err)
 		log.Fatal(err)
 	}
+	way.SendOutput(outputCh, "解析磁力链接成功")
 	//q：为什么会返回空指针
 	//a：因为这个磁力链接是无效的，或者说这个磁力链接没有对应的种子文件
 
@@ -41,17 +42,19 @@ func DownloadMagnetFile(magnetURL, downloadDir string, outputCh chan<- string) {
 	// 如果超时，就会执行 time.After() 中的代码
 	select {
 	case <-torrentFile.GotInfo():
-		way.SendOutput(outputCh, "解析磁力链接成功")
-		// 此处添加访问种子信息的代码
-	case <-time.After(20 * time.Second):
-		way.SendOutput(outputCh, "解析超时，建议检查一下网络情况，或是磁力链接是否失效")
+		way.SendOutput(outputCh, "开始获取元信息")
+	case <-time.After(15 * time.Second):
+		way.SendOutput(outputCh, "获取元信息，建议检查一下网络情况，或是磁力链接是否失效")
 		return // 或者执行其他超时后的操作
 	}
+
+	// way.SendOutput(outputCh, "开始获取元信息")
+	// <-torrentFile.GotInfo()
 
 	info := torrentFile.Info()
 
 	way.SendOutput(outputCh, "总文件名称:%v", info.Name)
-	way.SendOutput(outputCh, "总文件数量:%v", info.TotalLength())
+	way.SendOutput(outputCh, "总文件数量:%v", info.TotalLength()+1)
 	way.SendOutput(outputCh, "总文件大小:%v", len(info.Files))
 
 	files := torrentFile.Files()
