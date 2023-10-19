@@ -150,6 +150,7 @@ func main() {
 			} else {
 				way.SendOutput(outputCh, ".torrent.db 文件已成功删除")
 			}
+			way.SendOutput(outputCh, "------------------------该文件下载完成------------------------")
 		}()
 		// 处理输出消息并发送到 WebSocket 客户端
 		go func() {
@@ -181,6 +182,7 @@ func main() {
 			} else {
 				way.SendOutput(outputCh, ".torrent.db 文件已成功删除")
 			}
+			way.SendOutput(outputCh, "------------------------该文件下载完成------------------------")
 		}()
 		//处理输出消息并发送到 WebSocket 客户端
 		go func() {
