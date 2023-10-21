@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"sync"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 )
@@ -68,6 +69,9 @@ func main() {
 	r.LoadHTMLGlob("templates/*.html")
 	// 设置静态文件服务
 	r.Static("/static", "./static")
+
+	// 设置跨域访问配置
+	r.Use(cors.Default())
 
 	//设置默认页面
 	r.GET("/", func(c *gin.Context) {

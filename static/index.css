@@ -1,14 +1,12 @@
-
 body, h1, h2, ul {
   margin: 0;
   padding: 0;
 }
 
-/* Set background color and text color */
 body {
-  background-color: #f0f0f0;
-  color: #333;
-  font-family: Arial, sans-serif;
+  background-image: url("/static/images/background.png");/*https://mjj.today/i/6B7Yem*/
+  //opacity:0.4;
+  font-family: Arial, sans-serif; /* 设置字体 */
 }
 
 /* Style the container */
