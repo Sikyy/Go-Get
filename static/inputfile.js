@@ -11,10 +11,8 @@ selectFileButton.addEventListener("click", function() {
 fileInput.addEventListener("change", function() {
     if (fileInput.files.length > 0) {
         const selectedFile = fileInput.files[0];
-        selectedFileInfo.textContent = "你选择的文件名是：" + selectedFile.name + 
-        "你选择的文件路径是：" + fileInput.value;
+        selectedFileInfo.textContent = "你选择的文件名是：" + selectedFile.name
     } else {
         selectedFileInfo.textContent = "没有选择文件";
     }
 });
-

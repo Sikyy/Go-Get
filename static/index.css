@@ -3,6 +3,15 @@ body, h1, h2, ul {
   padding: 0;
 }
 
+h1 {
+  font-size: 24px;
+  background-color: transparent; /* 设置背景颜色为透明 */
+}
+
+h2.white-text {
+  color: #fff;
+}
+
 body {
   background-image: url("/static/images/background.png");/*https://mjj.today/i/6B7Yem*/
   //opacity:0.4;
@@ -19,7 +28,6 @@ body {
 /* Style the header */
 header {
   text-align: center;
-  background-color: #0074d9;
   color: #fff;
   padding: 10px 0;
 }
@@ -46,6 +54,9 @@ h2 {
 /* Style the input and button in the "添加下载任务" section */
 .input-container {
   display: flex;
+  justify-content: space-between; /* 通过 space-between 来对齐按钮 */
+  align-items: center; /* 垂直居中对齐 */
+  margin-bottom: 20px;
 }
 
 input[type="text"] {
@@ -64,6 +75,7 @@ button#add-magnet-btn, button#add-torrent-btn {
   padding: 10px 20px;
   cursor: pointer;
   transition: background-color 0.3s;
+  margin: 0; /* 清除按钮的默认外边距，以避免重叠 */
 }
 
 button#add-magnet-btn:hover, button#add-torrent-btn:hover {
