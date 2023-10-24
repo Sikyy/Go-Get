@@ -22,6 +22,9 @@ func main() {
 	// 创建一个默认的路由引擎
 	r := gin.Default()
 
+	// 全局变量用于存储上传的 torrent 文件路径
+	// var uploadedTorrentPath string
+
 	// 在全局范围内定义一个 map 用于跟踪已连接的 WebSocket 客户端
 	var connectedClients = make(map[*websocket.Conn]bool)
 
@@ -137,9 +140,38 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"message": "Download completed"})
 	})
 
+	r.POST("/upload", func(c *gin.Context) {
+		file, err := c.FormFile("file")
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		// 将文件保存到指定目录
+		uploadDir := "/Users/siky/go/src/Go-Get/static/uploads"
+		//如果文件夹不存在则创建文件夹
+		if err := os.MkdirAll(uploadDir, os.ModePerm); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		fmt.Println("文件夹创建成功")
+
+		uploadedFilePath := filepath.Join(uploadDir, file.Filename)
+
+		// 保存文件到指定路径
+		if err := c.SaveUploadedFile(file, uploadedFilePath); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "文件上传成功", "uploadedFilePath": uploadedFilePath})
+	})
+
 	r.GET("/torrent", func(c *gin.Context) {
 		// 种子文件路径
-		torrentFilePath := "/Users/siky/go/src/Go-Get/test.torrent"
+		//torrentFilePath := "/Users/siky/go/src/Go-Get/test.torrent"
+		// torrentFilePath := c.Query("torrentFilePath")
+		torrentFilePath := "/Users/siky/go/src/Go-Get/uploads/test.torrent"
 		outputCh := make(chan string, 10000)
 		// 传入种子文件路径和下载目录
 		go func() {
