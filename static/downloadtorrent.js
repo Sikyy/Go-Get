@@ -56,8 +56,24 @@ const selectFileButton = document.getElementById("select-file-button");
           if (xhr.status === 200) {
               // 上传成功
               alert("上传成功");
+
+              // 解析上传成功后的 JSON 响应，获取 uploadedFilePath
+              const uploadedFilePath = JSON.parse(xhr.responseText).uploadedFilePath;
   
-              // 这里可以根据需要执行其他操作
+              // 执行下载操作
+              const downloadXhr = new XMLHttpRequest();
+              downloadXhr.open("GET", "/torrent?torrentFilePath=" + uploadedFilePath);
+
+              downloadXhr.onload = () => {
+                if (downloadXhr.status === 200) {
+                  alert("下载成功");
+                  // 这里可以根据需要执行其他操作
+                } else {
+                  alert("下载失败");
+                }
+              };
+        
+              downloadXhr.send();
           } else {
               // 上传失败
               alert("上传失败");

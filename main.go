@@ -1,10 +1,12 @@
 package main
 
 import (
+	"Go-Get/data"
 	"Go-Get/download"
 	"Go-Get/getname"
 	"Go-Get/merge"
 	"Go-Get/way"
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -76,6 +78,14 @@ func main() {
 	// 设置跨域访问配置
 	r.Use(cors.Default())
 
+	//建立MongoDB连接
+	client, err := data.ConnectToMongoDB()
+	if err != nil {
+		log.Fatal(err)
+	}
+	//在程序结束时断开与MongoDB的连接
+	defer client.Disconnect(context.Background())
+
 	//设置默认页面
 	r.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", nil)
@@ -141,6 +151,7 @@ func main() {
 	})
 
 	r.POST("/upload", func(c *gin.Context) {
+		// 从请求中读取文件
 		file, err := c.FormFile("file")
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -165,13 +176,20 @@ func main() {
 		}
 
 		c.JSON(http.StatusOK, gin.H{"message": "文件上传成功", "uploadedFilePath": uploadedFilePath})
+
+		// 在文件上传成功后，将文件信息插入数据库
+		err = data.InsertFileToDatabase(client, uploadedFilePath)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
 	})
 
 	r.GET("/torrent", func(c *gin.Context) {
 		// 种子文件路径
 		//torrentFilePath := "/Users/siky/go/src/Go-Get/test.torrent"
-		// torrentFilePath := c.Query("torrentFilePath")
-		torrentFilePath := "/Users/siky/go/src/Go-Get/uploads/test.torrent"
+		torrentFilePath := c.Query("torrentFilePath")
+		// torrentFilePath := "/Users/siky/go/src/Go-Get/uploads/"
 		outputCh := make(chan string, 10000)
 		// 传入种子文件路径和下载目录
 		go func() {

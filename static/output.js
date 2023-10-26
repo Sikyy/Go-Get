@@ -1,10 +1,4 @@
 // output.js
-// const outputDiv = document.getElementById('output');
-// const socket = new WebSocket('ws://localhost:9000/ws');
-
-// socket.onmessage = function(event) {
-//     outputDiv.innerHTML += '<p>' + event.data + '</p>';
-// };
 const outputDiv = document.getElementById('output');
 const socket = new WebSocket('ws://localhost:9000/ws');
 
@@ -13,6 +7,7 @@ socket.onmessage = function(event) {
     
     // 创建一个包含时间戳和消息的段落元素
     const messageElement = document.createElement('p');
+    messageElement.style.color = 'white'; // 设置文本颜色为白色
     const timestamp = new Date().toLocaleTimeString();
     messageElement.innerHTML = `<span class="timestamp">${timestamp}:</span> ${message}`;
     
