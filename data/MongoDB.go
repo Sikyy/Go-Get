@@ -2,82 +2,80 @@ package data
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-type FileUpload struct {
-	Name        string
-	Size        int
-	FileCount   int
-	CreatedDate time.Time
-	UploadDate  time.Time
-	Uploader    string
-	Hash        string
-	Tracker     string
-	Comment     string
-}
-
 func ConnectToMongoDB() (*mongo.Client, error) {
 	url := "mongodb://localhost:27017"
-	if url == "" {
-		log.Fatal("You must set your 'MONGODB_URI' environmental variable")
-	}
+
 	// 设置客户端连接配置
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(url))
-	//在程序结束时断开与MongoDB的连接
-	defer func() {
-		if err = client.Disconnect(ctx); err != nil {
-			panic(err)
-		}
-	}()
+	if err != nil {
+		return nil, err
+	}
+
 	// 检查连接
 	ctx, cancel = context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	err = client.Ping(ctx, readpref.Primary())
 	if err != nil {
-		log.Fatal("Couldn't connect to the database", err)
+		return nil, err
 	}
 
-	// 连接成功输出
-	fmt.Println("Successfully connected to MongoDB")
-
-	// 返回连接的客户端
 	return client, nil
 }
 
-func InsertFileToDatabase(client *mongo.Client, filePath string) error {
-
-	// 选择数据库和集合
-	database := client.Database("Go-Get-MongoDB")
-	collection := database.Collection("Torrents")
-
-	// 创建一个 FileUpload 实例
-	upload := FileUpload{
-		Name:        "example.txt",           //文件名
-		Size:        1024,                    //文件大小
-		FileCount:   1,                       //文件数量
-		CreatedDate: time.Now(),              //创建时间
-		UploadDate:  time.Now(),              //上传时间
-		Uploader:    "user123",               //上传者
-		Hash:        "abc123",                //哈希值
-		Tracker:     "http://tracker.com",    //Tracker地址
-		Comment:     "This is a test upload", //备注
-	}
+func InsertDocument(client *mongo.Client, uploadinfo bson.M, datevase string, collections string) {
+	// 获取要插入的数据库和集合
+	datevase = "Go-Get-MongoDB"
+	collections = "test"
+	collection := client.Database(datevase).Collection(collections)
 
 	// 插入文档
-	_, err := collection.InsertOne(context.TODO(), upload)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	_, err := collection.InsertOne(ctx, uploadinfo)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("Document inserted successfully")
+	log.Println("Document inserted successfully")
+}
 
-	return nil
+func QueryDocuments(client *mongo.Client) {
+	// 获取要查询的数据库和集合
+	collection := client.Database("Go-Get-MongoDB").Collection("test")
+
+	// 构建查询条件
+	filter := bson.M{
+		"name": "John Doe",
+	}
+
+	// 查询文档
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	cursor, err := collection.Find(ctx, filter)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer cursor.Close(ctx)
+
+	// 遍历查询结果
+	for cursor.Next(ctx) {
+		var result map[string]interface{}
+		if err := cursor.Decode(&result); err != nil {
+			log.Fatal(err)
+		}
+		log.Printf("Found document: %v", result)
+	}
+	if err := cursor.Err(); err != nil {
+		log.Fatal(err)
+	}
 }

@@ -1,6 +1,7 @@
 package download
 
 import (
+	"Go-Get/data"
 	"Go-Get/getname"
 	"Go-Get/way"
 	"fmt"
@@ -8,12 +9,13 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/anacrolix/torrent"
 )
 
 // DownloadTorrentFile 添加一个种子文件并启动下载任务
-func DownloadTorrentFile(torrentFilePath, downloadDir string, outputCh chan<- string) {
+func DownloadTorrentFile(torrentFilePath, downloadDir string, outputCh chan<- string) data.UploadTorrentInfo {
 	// 创建一个新的Torrent客户端
 	client, err := torrent.NewClient(nil)
 	if err != nil {
@@ -29,13 +31,24 @@ func DownloadTorrentFile(torrentFilePath, downloadDir string, outputCh chan<- st
 	}
 	way.SendOutput(outputCh, "解析种子文件成功")
 
-	// 访问解析后的种子信息
-	// fmt.Println("Torrent Name:", torrentFile.Info().Name)
-	// fmt.Println("Number of Files:", len(torrentFile.Info().Files))
-	// fmt.Println("Total Size:", torrentFile.Info().TotalLength())
-	way.SendOutput(outputCh, "总文件名称:%v", torrentFile.Info().Name)
-	way.SendOutput(outputCh, "总文件数量:%v", len(torrentFile.Info().Files)+1)
-	way.SendOutput(outputCh, "总文件大小:%v", torrentFile.Info().TotalLength())
+	// 创建一个 UploadTorrentInfo 变量并填充数据
+	uploadInfo := data.UploadTorrentInfo{
+		Name:         torrentFile.Info().Name,
+		FilesNum:     len(torrentFile.Info().Files) + 1,
+		TotalLength:  torrentFile.Info().TotalLength(),
+		InfoHash:     torrentFile.InfoHash().HexString(),
+		InfoBytes:    string(torrentFile.Metainfo().InfoBytes),
+		Announce:     torrentFile.Metainfo().Announce,
+		Comment:      torrentFile.Metainfo().Comment,
+		CreatedBy:    torrentFile.Metainfo().CreatedBy,
+		CreationDate: torrentFile.Metainfo().CreationDate,
+		UploadTime:   time.Now(),
+	}
+
+	// 访问解析后的种子信息,给前端返回种子信息
+	way.SendOutput(outputCh, "种子文件名称:%v", torrentFile.Info().Name)
+	way.SendOutput(outputCh, "种子文件数量:%v", len(torrentFile.Info().Files)+1)
+	way.SendOutput(outputCh, "种子文件大小:%v", torrentFile.Info().TotalLength())
 
 	// 获取 Tracker 列表
 	trackers := torrentFile.Metainfo().AnnounceList
@@ -93,11 +106,13 @@ func DownloadTorrentFile(torrentFilePath, downloadDir string, outputCh chan<- st
 	// 等待下载完成
 	client.WaitAll()
 	way.SendOutput(outputCh, "下载完成:"+torrentFileName)
-}
 
-// torrent.DownloadAll() // 下载所有文件
-// torrent.Pause()	// 暂停
-// torrent.Resume()	// 恢复
-// torrent.Cancel()	// 取消
-// torrent.Wait() 		// 等待下载完成
-// client.WaitAll()	// 等待所有下载完成
+	// 在这里将 uploadInfo 发送到/uploadToMongoDB路由
+	// err = SendUploadInfoToMongoDB(uploadInfo)
+	// if err != nil {
+	// 	fmt.Println("Error sending uploadInfo to MongoDB")
+	// 	log.Fatal(err)
+	// }
+	// way.SendOutput(outputCh, "上传种子信息到MongoDB成功")
+	return uploadInfo
+}

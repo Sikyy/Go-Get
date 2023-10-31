@@ -14,10 +14,12 @@ import (
 	"path/filepath"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 func main() {
@@ -78,12 +80,11 @@ func main() {
 	// 设置跨域访问配置
 	r.Use(cors.Default())
 
-	//建立MongoDB连接
+	// 建立MongoDB连接
 	client, err := data.ConnectToMongoDB()
 	if err != nil {
 		log.Fatal(err)
 	}
-	//在程序结束时断开与MongoDB的连接
 	defer client.Disconnect(context.Background())
 
 	//设置默认页面
@@ -177,12 +178,37 @@ func main() {
 
 		c.JSON(http.StatusOK, gin.H{"message": "文件上传成功", "uploadedFilePath": uploadedFilePath})
 
-		// 在文件上传成功后，将文件信息插入数据库
-		err = data.InsertFileToDatabase(client, uploadedFilePath)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	})
+
+	r.POST("/uploadToMongoDB", func(c *gin.Context) {
+
+		// 创建一个 downloadInfo 变量，用于存储 JSON 数据
+		var downloadInfo data.UploadTorrentInfo
+
+		// 从请求中读取 JSON 数据并解码到 downloadInfo 变量
+		if err := c.BindJSON(&downloadInfo); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
+
+		//把json转化为BSON
+		uploadinfo := bson.M{
+			"name":          downloadInfo.Name,
+			"files_num":     downloadInfo.FilesNum,
+			"total_length":  downloadInfo.TotalLength,
+			"info_hash":     downloadInfo.InfoHash,
+			"info_bytes":    downloadInfo.InfoBytes,
+			"announce":      downloadInfo.Announce,
+			"comment":       downloadInfo.Comment,
+			"created_by":    downloadInfo.CreatedBy,
+			"creation_date": downloadInfo.CreationDate,
+			"upload_time":   downloadInfo.UploadTime,
+		}
+
+		// 在此处将下载信息插入 MongoDB 数据库
+		data.InsertDocument(client, uploadinfo, "Go-Get-MongoDB", "Torrents")
+
+		c.JSON(http.StatusOK, gin.H{"message": "Data inserted successfully"})
 	})
 
 	r.GET("/torrent", func(c *gin.Context) {
@@ -194,17 +220,27 @@ func main() {
 		// 传入种子文件路径和下载目录
 		go func() {
 			defer close(outputCh)
-			download.DownloadTorrentFile(torrentFilePath, "/Users/siky/go/src/Go-Get", outputCh)
+			uploadinfo := download.DownloadTorrentFile(torrentFilePath, "/Users/siky/go/src/Go-Get", outputCh)
+
+			// 在这里将 uploadInfo 发送到/uploadToMongoDB路由
+			err := data.SendUploadInfoToMongoDB(uploadinfo)
+			if err != nil {
+				way.SendOutput(outputCh, "上传种子信息到MongoDB时出错:%v", err)
+			} else {
+				way.SendOutput(outputCh, "种子信息已成功上传到MongoDB")
+			}
 			c.JSON(http.StatusOK, gin.H{"message": "Download completed"})
+
 			//删除 .torrent.db 文件
 			dbFilePath := filepath.Join("/Users/siky/go/src/Go-Get", ".torrent.db")
-			err := os.Remove(dbFilePath)
+			err = os.Remove(dbFilePath)
 			if err != nil {
 				way.SendOutput(outputCh, "删除 .torrent.db 文件时出错:%v", err)
 			} else {
 				way.SendOutput(outputCh, ".torrent.db 文件已成功删除")
 			}
 			way.SendOutput(outputCh, "------------------------该文件下载完成------------------------")
+			// 在这里将 uploadInfo 发送到/uploadToMongoDB路由
 		}()
 		// 处理输出消息并发送到 WebSocket 客户端
 		go func() {
@@ -251,7 +287,35 @@ func main() {
 	})
 
 	r.GET("/test", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "test.html", nil)
+		uploadInfo := data.UploadTorrentInfo{
+			Name:         "test",
+			FilesNum:     1,
+			TotalLength:  1,
+			InfoHash:     "test",
+			InfoBytes:    "test",
+			Announce:     "test",
+			Comment:      "test",
+			CreatedBy:    "test",
+			CreationDate: 1,
+			UploadTime:   time.Now(),
+		}
+
+		if err := data.SendUploadInfoToMongoDB(uploadInfo); err != nil {
+			fmt.Println("Error sending data:", err)
+		}
+	})
+
+	r.POST("/testUploadToMongoDB", func(c *gin.Context) {
+		var receivedData data.UploadTorrentInfo
+		if err := c.ShouldBindJSON(&receivedData); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		// 在这里处理接收到的数据
+		fmt.Println("Received data:", receivedData)
+
+		c.JSON(http.StatusOK, receivedData)
 	})
 
 	r.Run(":9000")
