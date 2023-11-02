@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Torrent Downloader</title>
-    <link rel="stylesheet" href="/static/index.css">
+    <link rel="stylesheet" href="/static/css/index.css">
 </head>
 <body>
     <div class="container">
@@ -17,14 +17,14 @@
                 <div class="input-container">
                     <input type="text" id="magnet-link" placeholder="输入下载链接">
                     <button id="add-magnet-btn">下载Magnet</button>
-                    <script src="/static/downloadmagnet.js"></script>
+                    <script src="/static/js/downloadmagnet.js"></script>
                 </div>
                 <div class="input-container">
                     <input type="file" id="file-input" style="display: none;">
                     <button id="select-file-button">选择文件</button>
                     <div id="selected-file-info"></div>
                     <button id="add-torrent-btn">下载Torrent</button>
-                    <script src="/static/downloadTorrent.js"></script>
+                    <script src="/static/js/downloadtorrent.js"></script>
                 </div>
             </section>
             <section class="magnet-list">
@@ -40,7 +40,7 @@
                 </div>
                 <div id="output"></div>
                 <!-- 输出结果 -->
-                <script src="/static/output.js"></script>
+                <script src="/static/js/output.js"></script>
             </section>
         </main>
         <!-- <script src="/static/inputfile.js"></script> -->
