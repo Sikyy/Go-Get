@@ -2,7 +2,7 @@ package service
 
 import (
 	"Go-Get/data"
-	"Go-Get/dbinit"
+	"Go-Get/data/dbinit"
 	"fmt"
 	"net/http"
 	"os"
