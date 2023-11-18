@@ -27,6 +27,16 @@ var (
 			Help:      "统计QPS数据",              //帮助信息
 		}, []string{EndpointsDataSubsystem}, //用于标识不同的接口
 	)
+	//一个 Histogram 向量，用于记录接口耗时的统计信息。用于记录每个接口的耗时。
+	EndpointsLantencyMonitor = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: PrometheusNamespace,                                      //命名空间
+			Subsystem: EndpointsDataSubsystem,                                   //子系统
+			Name:      "lantency_statistic",                                     //指标名称
+			Help:      "统计耗时数据",                                                 //帮助信息
+			Buckets:   []float64{1, 5, 10, 20, 50, 100, 500, 1000, 5000, 10000}, //耗时区间，如果一个请求的耗时在某个区间内，就会被记录到对应的桶中。
+		}, []string{EndpointsDataSubsystem}, //用于标识不同的接口
+	)
 )
 
 // 初始化指标
@@ -34,8 +44,10 @@ func Init() {
 	Pusher = push.New(PrometheusUrl, PrometheusJob)
 	prometheus.MustRegister(
 		EndpointsQPSMonitor,
+		EndpointsLantencyMonitor,
 	)
 	Pusher.Collector(EndpointsQPSMonitor)
+	Pusher.Collector(EndpointsLantencyMonitor)
 }
 
 func PushGateway() {

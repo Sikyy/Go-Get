@@ -13,7 +13,7 @@ func Router() *gin.Engine {
 	r := gin.Default()
 
 	// 设置qps中间件,用于统计接口qps
-	r.Use(middleware.HandleEndpointQps())
+	r.Use(middleware.HandleEndpointQps(), middleware.HandleEndpointLantency())
 
 	// 设置跨域访问配置
 	r.Use(cors.Default())
