@@ -43,7 +43,7 @@ func Router() *gin.Engine {
 
 	//测试相关
 	//测试上传数据给testUploadToMongoDB路由
-	r.GET("/test", service.TestTotestUploadToMongoDB)
+	r.POST("/test", service.TestTotestUploadToMongoDB)
 	//测试上传数据给MongoDB
 	r.POST("/testUploadToMongoDB", service.TestUploadToMongoDB)
 

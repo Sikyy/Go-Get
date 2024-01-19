@@ -2,6 +2,8 @@ package data
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"log"
 	"time"
 
@@ -27,17 +29,19 @@ func ConnectToMongoDB() (*mongo.Client, error) {
 	defer cancel()
 	err = client.Ping(ctx, readpref.Primary())
 	if err != nil {
+		fmt.Println("Could not connect to MongoDB:", err)
 		return nil, err
 	}
 
 	return client, nil
 }
 
-func InsertDocument(client *mongo.Client, uploadinfo bson.M, datevase string, collections string) {
+func InsertDocument(client *mongo.Client, uploadinfo bson.M, datevase string, collections string) error {
 	// 获取要插入的数据库和集合
-	datevase = "Go-Get-MongoDB"
-	collections = "test"
 	collection := client.Database(datevase).Collection(collections)
+	if collection == nil {
+		return errors.New("collection is nil")
+	}
 
 	// 插入文档
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -47,6 +51,7 @@ func InsertDocument(client *mongo.Client, uploadinfo bson.M, datevase string, co
 		log.Fatal(err)
 	}
 	log.Println("Document inserted successfully")
+	return nil
 }
 
 func QueryDocuments(client *mongo.Client) {
