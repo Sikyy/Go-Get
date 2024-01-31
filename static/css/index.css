@@ -67,7 +67,7 @@ input[type="text"] {
   margin-right: 10px;
 }
 
-button#add-magnet-btn, button#add-torrent-btn {
+button#add-magnet-btn, button#add-torrent-btn, button#add-http-btn {
   background-color: #0074d9;
   color: #fff;
   border: none;
