@@ -14,7 +14,7 @@ func main() {
 	r := router.Router()
 
 	// 每15秒上报一次数据给 PushGateway
-	// go metrics.PushGateway()
+	go metrics.PushGateway()
 
 	r.Run(":9000")
 }

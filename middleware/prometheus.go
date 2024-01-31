@@ -3,7 +3,6 @@ package middleware
 import (
 	"Go-Get/metrics"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -27,24 +26,18 @@ func HandleEndpointQps() gin.HandlerFunc {
 
 func HandleEndpointLantency() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		//获取当前请求的接口路径
+		// 获取当前请求的接口路径
 		endpoint := c.Request.URL.Path
-		fmt.Println(endpoint)
-		//记录当前时间，作为请求处理开始的时间点
+		// 记录当前时间，作为请求处理开始的时间点
 		start := time.Now()
 		defer func(c *gin.Context) {
-			//计算请求处理耗时
-			lantency := time.Now().Sub(start)
-			//将耗时转换成毫秒，并将 endpoint 作为 label。然后，通过 Observe 方法记录耗时。
-			lantencyStr := fmt.Sprintf("%0.3d", lantency.Nanoseconds()/1e6)
-			//将字符串转换成 float64
-			lantencyFloat64, err := strconv.ParseFloat(lantencyStr, 64)
-			if err != nil {
-				panic(err)
-			}
+			// 计算请求处理耗时
+			lantency := time.Since(start)
+			// 将耗时直接转换为毫秒，保留三位小数
+			lantencyFloat64 := float64(lantency.Nanoseconds()) / 1e6
 
-			fmt.Println(lantencyFloat64)
-			//将当前请求的 endpoint 作为 label。然后通过 Observe 方法记录耗时。
+			fmt.Printf("请求接口:%v，请求处理耗时：%f ms\n", endpoint, lantencyFloat64)
+			// 将当前请求的 endpoint 作为 label。然后通过 Observe 方法记录耗时。
 			metrics.EndpointsLantencyMonitor.With(prometheus.Labels{metrics.EndpointsDataSubsystem: endpoint}).Observe(lantencyFloat64)
 		}(c)
 		c.Next()
