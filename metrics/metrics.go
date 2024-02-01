@@ -41,11 +41,16 @@ var (
 
 // 初始化指标
 func Init() {
+	// 创建一个新的pusher实例，使用PrometheusUrl和PrometheusJob进行配置
 	Pusher = push.New(PrometheusUrl, PrometheusJob)
+
+	// 使用prometheus.MustRegister函数注册两个监控指标，分别是EndpointsQPSMonitor和EndpointsLantencyMonitor
 	prometheus.MustRegister(
 		EndpointsQPSMonitor,
 		EndpointsLantencyMonitor,
 	)
+
+	// 将EndpointsQPSMonitor和EndpointsLantencyMonitor添加到Pusher实例中的收集器列表中
 	Pusher.Collector(EndpointsQPSMonitor)
 	Pusher.Collector(EndpointsLantencyMonitor)
 }
