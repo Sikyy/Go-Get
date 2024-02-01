@@ -13,7 +13,7 @@ import (
 )
 
 // DownloadChunk 下载分片的函数
-func DownloadChunk(url string, chunkIndex, chunkSize int64, wg *sync.WaitGroup, progressCh chan<- int) {
+func DownloadChunk(url string, chunkIndex, chunkSize int64, wg *sync.WaitGroup, progressCh chan<- int64) {
 	//传入URL、分片的索引、分片的大小、WaitGroup、发送分片下载进度的管道
 
 	defer wg.Done()
@@ -62,5 +62,5 @@ func DownloadChunk(url string, chunkIndex, chunkSize int64, wg *sync.WaitGroup, 
 	}
 
 	// 下载完成时，发送分片下载进度给管道
-	progressCh <- int(resp.ContentLength)
+	progressCh <- resp.ContentLength
 }

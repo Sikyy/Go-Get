@@ -45,7 +45,7 @@ func HttpDownload(c *gin.Context) {
 	chunkSize := contentLength / 5 // 分片大小 分成5个分片，你可以根据需要更改分片数
 
 	var wg sync.WaitGroup
-	progressCh := make(chan int, 5) // 同时下载的分片数
+	progressCh := make(chan int64, 5) // 同时下载的分片数
 
 	// 下载分片
 	for i := int64(0); i < 5; i++ {
@@ -57,7 +57,7 @@ func HttpDownload(c *gin.Context) {
 	var totalProgress int64
 	go func() {
 		for p := range progressCh {
-			totalProgress += int64(p)
+			totalProgress += p
 			fmt.Printf("Total Progress: %.2f%%\n", float64(totalProgress)/float64(contentLength)*100)
 		}
 	}()

@@ -20,7 +20,7 @@ type File struct {
 
 // DownloadMagnetFile 添加一个磁力链接并启动下载任务
 func DownloadMagnetFile(magnetURL, downloadDir string, outputCh chan<- string) {
-	// 创建一个新的 Torrent 客户端
+	// 创建一个新的客户端
 	client, err := torrent.NewClient(nil)
 	if err != nil {
 		log.Fatal(err)
@@ -28,8 +28,8 @@ func DownloadMagnetFile(magnetURL, downloadDir string, outputCh chan<- string) {
 	way.SendOutput(outputCh, "客户端初始化成功")
 	defer client.Close()
 
-	// 解析磁力链接，返回一个 TorrentFile 的指针
-	torrentFile, err := client.AddMagnet(magnetURL)
+	// 解析磁力链接，返回一个 MagnetFile 的指针
+	magnetFile, err := client.AddMagnet(magnetURL)
 	if err != nil {
 		way.SendOutput(outputCh, "解析磁力链接失败:%v", err)
 		log.Fatal(err)
@@ -41,7 +41,7 @@ func DownloadMagnetFile(magnetURL, downloadDir string, outputCh chan<- string) {
 	// 等待解析磁力链接，当元数据下载完成后，该通道会被关闭，此时可以访问种子信息
 	// 如果超时，就会执行 time.After() 中的代码
 	select {
-	case <-torrentFile.GotInfo():
+	case <-magnetFile.GotInfo():
 		way.SendOutput(outputCh, "开始获取元信息")
 	case <-time.After(15 * time.Second):
 		way.SendOutput(outputCh, "获取元信息，建议检查一下网络情况，或是磁力链接是否失效")
@@ -51,25 +51,25 @@ func DownloadMagnetFile(magnetURL, downloadDir string, outputCh chan<- string) {
 	// way.SendOutput(outputCh, "开始获取元信息")
 	// <-torrentFile.GotInfo()
 
-	info := torrentFile.Info()
+	info := magnetFile.Info()
 
 	way.SendOutput(outputCh, "总文件名称:%v", info.Name)
 	way.SendOutput(outputCh, "总文件数量:%v", info.TotalLength()+1)
 	way.SendOutput(outputCh, "总文件大小:%v", len(info.Files))
 
-	files := torrentFile.Files()
+	files := magnetFile.Files()
 	for _, file := range files {
 		way.SendOutput(outputCh, "文件名称:%v", file.Path())
 		way.SendOutput(outputCh, "文件大小:%v", file.Length())
 	}
 
 	// 获取种子文件的原始文件名
-	torrentFileName := filepath.Base(torrentFile.Info().Name)
-	way.SendOutput(outputCh, "文件原始名称:%v", torrentFileName)
+	magnetFileName := filepath.Base(magnetFile.Info().Name)
+	way.SendOutput(outputCh, "文件原始名称:%v", magnetFileName)
 	// 获取种子文件的原始文件名（不包含扩展名）
-	torrentFileNameWithoutExtension := strings.TrimSuffix(torrentFileName, filepath.Ext(torrentFileName))
+	magnetFileNameWithoutExtension := strings.TrimSuffix(magnetFileName, filepath.Ext(magnetFileName))
 	//使用正则表达式匹配动画名称
-	animeName := getname.ExtractAnimeName(torrentFileNameWithoutExtension)
+	animeName := getname.ExtractAnimeName(magnetFileNameWithoutExtension)
 
 	// 设置保存目录
 	savePath := filepath.Join(downloadDir, animeName)
@@ -91,14 +91,14 @@ func DownloadMagnetFile(magnetURL, downloadDir string, outputCh chan<- string) {
 		log.Fatal(err)
 	}
 
-	torrentFile.AllowDataDownload() // 允许下载数据
+	magnetFile.AllowDataDownload() // 允许下载数据
 	way.SendOutput(outputCh, "允许下载数据")
 
 	// 下载所有文件
-	torrentFile.DownloadAll()
+	magnetFile.DownloadAll()
 	way.SendOutput(outputCh, "开始下载")
 
 	// 等待下载完成
 	client.WaitAll()
-	way.SendOutput(outputCh, "下载完成:"+torrentFileName)
+	way.SendOutput(outputCh, "下载完成:"+magnetFileName)
 }

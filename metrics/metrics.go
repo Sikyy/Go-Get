@@ -53,8 +53,7 @@ func Init() {
 func PushGateway() {
 	// 每15秒上报一次数据
 	for range time.Tick(15 * time.Second) {
-		if err := Pusher.
-			Add(); err != nil {
+		if err := Pusher.Add(); err != nil {
 			log.Println(err)
 		}
 		log.Println("push ")

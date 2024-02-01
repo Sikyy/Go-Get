@@ -7,7 +7,7 @@ import (
 )
 
 // MergeChunks 合并下载的分片
-func MergeChunks(chunkCount int64, mergedFileName string) {
+func MergeChunks(chunkCount int, mergedFileName string) {
 	// 创建合并文件，存储最终合并文件的内容
 	mergedFile, err := os.Create(mergedFileName)
 	if err != nil {
@@ -17,7 +17,7 @@ func MergeChunks(chunkCount int64, mergedFileName string) {
 	defer mergedFile.Close()
 
 	// 遍历所有分片文件，逐一读取内容并写入合并文件
-	for i := int64(0); i < chunkCount; i++ {
+	for i := 0; i < chunkCount; i++ {
 		chunkFileName := fmt.Sprintf("chunk_%d.tmp", i)
 		chunkFile, err := os.Open(chunkFileName)
 		if err != nil {
